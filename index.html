@@ -33,8 +33,6 @@
         .filter-btn:hover { border-color: #059669; color: #059669; }
         .filter-btn.active { background: #059669; color: #fff; border-color: #059669; }
 
-        .port-dot { transition: all 0.15s ease; cursor: pointer; }
-        .port-dot:hover { filter: brightness(1.3); }
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 50; display: flex; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 40px 16px; }
         .modal-content { background: #fff; border-radius: 16px; max-width: 900px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
@@ -46,8 +44,6 @@
         .badge-public { background: #d1fae5; color: #065f46; }
         .badge-terminal { background: #fef3c7; color: #92400e; }
 
-        .project-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; transition: all 0.2s; text-decoration: none; display: block; }
-        .project-card:hover { border-color: #059669; box-shadow: 0 4px 12px rgba(5,150,105,0.1); transform: translateY(-2px); }
 
         .stat-counter { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1; color: #34d399; }
 
@@ -131,16 +127,6 @@
                 cargoes: [["Petroleum Products", 48.6], ["Crude Oil", 38.2], ["LPG", 6.8], ["Bunker Fuel", 4.2], ["Chemicals", 2.2]] },
         ];
 
-        const PORT_COORDS = {
-            "ponta-madeira": { x: 330, y: 105 }, "santos": { x: 380, y: 445 }, "tubarao": { x: 455, y: 380 },
-            "angra": { x: 410, y: 430 }, "itaguai": { x: 420, y: 420 }, "paranagua": { x: 365, y: 470 },
-            "sao-sebastiao": { x: 395, y: 440 }, "acu-petroleo": { x: 445, y: 395 }, "itaqui": { x: 322, y: 112 },
-            "ilha-guaiba": { x: 415, y: 425 }, "riogrande": { x: 330, y: 535 }, "acu-minerio": { x: 450, y: 392 },
-            "suape": { x: 500, y: 175 }, "porto-sudeste": { x: 425, y: 418 }, "madre-de-deus": { x: 475, y: 240 },
-            "vila-do-conde": { x: 270, y: 95 }, "pecem": { x: 430, y: 115 }, "sao-francisco-sul": { x: 355, y: 490 },
-            "santarem": { x: 225, y: 90 }, "ilha-dagua": { x: 430, y: 415 },
-        };
-
         // ========== HELPERS ==========
         function fmt(num) {
             if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
@@ -211,7 +197,7 @@
                         </div>
 
                         <nav style={{display:'flex',justifyContent:'center',gap:12,flexWrap:'wrap'}}>
-                            {['overview','map','compare','about'].map(s => (
+                            {['overview','compare','about'].map(s => (
                                 <button key={s} onClick={() => onNavigate(s)}
                                     style={{padding:'10px 24px',borderRadius:8,border:'1px solid rgba(255,255,255,0.2)',background: s==='overview' ? '#059669' : 'rgba(255,255,255,0.06)',color:'#fff',fontWeight:600,fontSize:'0.875rem',cursor:'pointer',transition:'all 0.2s',textTransform:'capitalize'}}>
                                     {s}
@@ -229,7 +215,7 @@
                 <div className="nav-sticky">
                     <div style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',gap:8,padding:'0 20px'}}>
                         <span style={{fontWeight:800,fontSize:'0.95rem',color:'#059669',marginRight:16}}>BR Ports</span>
-                        {['overview','map','compare','about'].map(s => (
+                        {['overview','compare','about'].map(s => (
                             <button key={s} className="nav-link" onClick={() => onNavigate(s)} style={{textTransform:'capitalize'}}>{s}</button>
                         ))}
                     </div>
@@ -322,70 +308,6 @@
                                 </BarChart>
                             </ResponsiveContainer>
                             <p style={{fontSize:'0.75rem',color:'#9ca3af',marginTop:12}}>Click any bar to view port details</p>
-                        </div>
-                    </div>
-                </section>
-            );
-        }
-
-        // ========== MAP ==========
-        function MapSection({ onSelectPort }) {
-            const [hover, setHover] = useState(null);
-            const maxCargo = Math.max(...PORTS.map(p => p.data[4].t));
-
-            return (
-                <section id="map" style={{padding:'80px 20px',background:'#fff'}}>
-                    <div style={{maxWidth:900,margin:'0 auto'}}>
-                        <h2 style={{fontSize:'2rem',fontWeight:800,marginBottom:40}}>Interactive Port Map</h2>
-                        <div className="section-card" style={{position:'relative'}}>
-                            <svg viewBox="0 0 700 680" style={{width:'100%',height:'auto',display:'block'}}>
-                                <defs>
-                                    <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1">
-                                        <stop offset="0%" stopColor="#f0f9ff" />
-                                        <stop offset="100%" stopColor="#e0f2fe" />
-                                    </linearGradient>
-                                </defs>
-                                <rect width="700" height="680" fill="url(#sea)" rx="8" />
-                                <path d="M320,20 L380,18 L430,30 L470,25 L510,40 L540,60 L565,55 L590,70 L610,100 L620,130 L630,160 L640,190 L645,220 L640,255 L630,280 L615,305 L595,330 L575,350 L555,370 L540,395 L520,420 L500,440 L480,455 L460,470 L440,490 L420,510 L395,530 L370,545 L345,555 L320,560 L290,555 L265,545 L240,530 L220,510 L200,490 L180,460 L170,430 L165,400 L160,370 L150,340 L140,310 L130,280 L125,250 L130,220 L140,195 L155,170 L170,150 L185,130 L200,110 L220,90 L245,70 L270,50 L295,35 Z"
-                                    fill="#ecfdf5" stroke="#a7f3d0" strokeWidth="1.5" />
-                                <text x="580" y="450" fill="#93c5fd" fontFamily="Inter" fontSize="11" fontWeight="600" letterSpacing="3" opacity="0.5" transform="rotate(-30,580,450)">ATLANTIC OCEAN</text>
-                                {['MA','PE','PA','CE','BA','ES','RJ','SP','PR','SC','RS'].map(st => {
-                                    const pos = {MA:[310,140],PE:[490,195],PA:[240,115],CE:[425,140],BA:[470,265],ES:[460,400],RJ:[435,440],SP:[370,460],PR:[355,485],SC:[345,505],RS:[320,550]};
-                                    return <text key={st} x={pos[st][0]} y={pos[st][1]} fill="#94a3b8" fontFamily="Inter" fontSize="9" fontWeight="500" textAnchor="middle">{st}</text>;
-                                })}
-                                {PORTS.map(port => {
-                                    const c = PORT_COORDS[port.id];
-                                    const r = 3.5 + (port.data[4].t / maxCargo) * 5;
-                                    const isPublic = port.type === 'Porto Organizado';
-                                    const color = isPublic ? '#059669' : '#dc2626';
-                                    const isHovered = hover === port.id;
-                                    return (
-                                        <g key={port.id} className="port-dot"
-                                           onMouseEnter={() => setHover(port.id)}
-                                           onMouseLeave={() => setHover(null)}
-                                           onClick={() => onSelectPort(port.id)}>
-                                            <circle cx={c.x} cy={c.y} r={r + 4} fill={color} opacity={isHovered ? 0.25 : 0.1} />
-                                            <circle cx={c.x} cy={c.y} r={r} fill={color} stroke="#fff" strokeWidth="1.5" opacity={isHovered ? 1 : 0.85} />
-                                            {isHovered && (
-                                                <g>
-                                                    <rect x={c.x + 14} y={c.y - 28} width={160} height={42} rx={6} fill="#0f172a" opacity="0.95" />
-                                                    <text x={c.x + 22} y={c.y - 12} fill="#fff" fontSize="10" fontWeight="600" fontFamily="Inter">{port.name.substring(0, 22)}</text>
-                                                    <text x={c.x + 22} y={c.y + 2} fill="#34d399" fontSize="9" fontWeight="600" fontFamily="Inter">{fmt(port.data[4].t)} t (2025)</text>
-                                                </g>
-                                            )}
-                                        </g>
-                                    );
-                                })}
-                            </svg>
-                            <div style={{display:'flex',gap:24,marginTop:16,flexWrap:'wrap',fontSize:'0.8rem',color:'#6b7280'}}>
-                                <div style={{display:'flex',alignItems:'center',gap:6}}>
-                                    <span style={{width:12,height:12,borderRadius:'50%',background:'#059669',display:'inline-block'}}></span> Public Ports
-                                </div>
-                                <div style={{display:'flex',alignItems:'center',gap:6}}>
-                                    <span style={{width:12,height:12,borderRadius:'50%',background:'#dc2626',display:'inline-block'}}></span> Authorised Terminals
-                                </div>
-                                <span style={{marginLeft:'auto',fontSize:'0.7rem',color:'#9ca3af'}}>Click a dot to view details</span>
-                            </div>
                         </div>
                     </div>
                 </section>
@@ -582,13 +504,6 @@
 
         // ========== ABOUT ==========
         function AboutSection() {
-            const projects = [
-                { name: "SDG Research Hub", url: "https://sdgporthub.com", desc: "Sustainable Development Goals port research platform" },
-                { name: "CO2 Liquid Bulk Calculator", url: "https://co2-liquid-bulk-calculator.vercel.app", desc: "Maritime carbon emissions calculator" },
-                { name: "Port Emissions Dashboard", url: "https://emissoesco2.manus.space", desc: "Real-time port emissions monitoring" },
-                { name: "BluePort AI", url: "https://blueportai.manus.space", desc: "AI-powered waste classification for ports" },
-            ];
-
             return (
                 <section id="about" style={{padding:'80px 20px',background:'#fff'}}>
                     <div style={{maxWidth:1000,margin:'0 auto'}}>
@@ -609,17 +524,6 @@
                                 </p>
                                 <a href="mailto:darlianerc@gmail.com" style={{color:'#059669',fontWeight:600,fontSize:'0.85rem',textDecoration:'none'}}>darlianerc@gmail.com</a>
                             </div>
-                        </div>
-
-                        <h3 style={{fontWeight:700,fontSize:'1.1rem',marginBottom:20}}>Related Projects</h3>
-                        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:48}}>
-                            {projects.map((p, i) => (
-                                <a key={i} href={p.url} target="_blank" rel="noopener noreferrer" className="project-card">
-                                    <h4 style={{fontWeight:700,color:'#111827',marginBottom:8,fontSize:'0.9rem'}}>{p.name}</h4>
-                                    <p style={{color:'#6b7280',fontSize:'0.78rem',lineHeight:1.5}}>{p.desc}</p>
-                                    <p style={{color:'#059669',fontSize:'0.75rem',fontWeight:600,marginTop:12}}>Visit project</p>
-                                </a>
-                            ))}
                         </div>
 
                         <div className="section-card" style={{background:'#f9fafb',marginBottom:32}}>
@@ -644,7 +548,6 @@
                     <HeroSection onNavigate={handleNavigate} />
                     <NavBar onNavigate={handleNavigate} />
                     <OverviewSection onSelectPort={setSelectedPort} />
-                    <MapSection onSelectPort={setSelectedPort} />
                     <ComparisonSection />
                     <AboutSection />
                     <footer style={{background:'#0f172a',color:'#fff',padding:'32px 20px',textAlign:'center'}}>
