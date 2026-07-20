@@ -3,10 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brazil's Top 20 Ports & Terminals - Cargo Movement Dashboard</title>
+    <title>Brazil Ports & Terminals - Cargo Movement Dashboard</title>
+    <meta name="description" content="Interactive dashboard covering all Brazilian ports and terminals: official ANTAQ cargo statistics for 211 facilities (2023-2025) and detailed profiles of the 20 largest (2021-2025).">
+    <meta name="author" content="Darliane Ribeiro Cunha, PhD">
+    <meta name="theme-color" content="#020617">
+    <meta property="og:title" content="Brazil Ports & Terminals - Cargo Movement Dashboard">
+    <meta property="og:description" content="Interactive dashboard covering all Brazilian ports and terminals: official ANTAQ cargo statistics for 211 facilities (2023-2025) and detailed profiles of the 20 largest (2021-2025).">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://brazilport20.vercel.app/">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23020617'/%3E%3Cpath d='M8 42c6 0 6 6 12 6s6-6 12-6 6 6 12 6 6-6 12-6' stroke='%2300bfc0' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='22' r='9' fill='%23e2bf76'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@500;600;700&family=Source+Sans+3:wght@300;400;500;600;700;800&family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet">
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -14,38 +23,39 @@
     <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #ffffff; color: #111827; -webkit-font-smoothing: antialiased; }
+        body { font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif; background: #ffffff; color: #13343b; -webkit-font-smoothing: antialiased; }
         html { scroll-behavior: smooth; }
+        h1, h2 { font-family: 'Crimson Pro', Georgia, serif; }
 
-        .hero-bg { background: linear-gradient(135deg, #0a0f1a 0%, #0f172a 40%, #0c4a3e 100%); }
+        .hero-bg { background: linear-gradient(135deg, #010312 0%, #020617 45%, #073c42 100%); }
         .glass-card { background: rgba(255,255,255,0.07); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; }
         .section-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; }
         .kpi-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; transition: box-shadow 0.2s; }
         .kpi-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .kpi-value { font-size: 1.75rem; font-weight: 800; color: #059669; line-height: 1.2; font-variant-numeric: tabular-nums; }
-        .kpi-label { font-size: 0.8rem; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .kpi-value { font-size: 1.75rem; font-weight: 800; color: #0a8f93; line-height: 1.2; font-variant-numeric: tabular-nums; }
+        .kpi-label { font-family: 'DM Sans', sans-serif; font-size: 0.8rem; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 
         .nav-sticky { position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); border-bottom: 1px solid #e5e7eb; }
         .nav-link { padding: 12px 20px; font-size: 0.875rem; font-weight: 600; color: #6b7280; cursor: pointer; border: none; background: none; transition: color 0.2s; }
-        .nav-link:hover { color: #059669; }
+        .nav-link:hover { color: #0a8f93; }
 
         .filter-btn { padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 1px solid #e5e7eb; background: #fff; color: #374151; }
-        .filter-btn:hover { border-color: #059669; color: #059669; }
-        .filter-btn.active { background: #059669; color: #fff; border-color: #059669; }
+        .filter-btn:hover { border-color: #0a8f93; color: #0a8f93; }
+        .filter-btn.active { background: #0a8f93; color: #fff; border-color: #0a8f93; }
 
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 50; display: flex; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 40px 16px; }
         .modal-content { background: #fff; border-radius: 16px; max-width: 900px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
 
         .progress-bar { height: 6px; border-radius: 3px; background: #e5e7eb; overflow: hidden; }
-        .progress-fill { height: 100%; border-radius: 3px; background: #059669; transition: width 0.6s ease; }
+        .progress-fill { height: 100%; border-radius: 3px; background: #00bfc0; transition: width 0.6s ease; }
 
         .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        .badge-public { background: #d1fae5; color: #065f46; }
+        .badge-public { background: #d2f3f3; color: #0a5c5e; }
         .badge-terminal { background: #fef3c7; color: #92400e; }
 
 
-        .stat-counter { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1; color: #34d399; }
+        .stat-counter { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1; color: #5ad7d9; }
 
         @media (max-width: 768px) {
             .hero-stats { grid-template-columns: repeat(2, 1fr) !important; }
@@ -66,66 +76,70 @@
         // ========== DATA ==========
         const PORTS = [
             { id: "ponta-madeira", name: "Ponta da Madeira Marine Terminal", state: "Maranhao", sc: "MA", region: "Northeast", city: "Sao Luis", color: "#0f766e", type: "Terminal Autorizado", rank: 1,
-                data: [{ y: 2021, t: 182361835, b: 714 }, { y: 2022, t: 167995183, b: 634 }, { y: 2023, t: 166334878, b: 626 }, { y: 2024, t: 175777453, b: 661 }, { y: 2025, t: 172389190, b: 638 }],
+                data: [{ y: 2021, t: 182361835, b: 714 }, { y: 2022, t: 167995183, b: 634 }, { y: 2023, t: 166334878, b: 626 }, { y: 2024, t: 175777453, b: 661 }, { y: 2025, t: 156851712, b: 638 }],
                 cargoes: [["Iron Ore", 91.2], ["Iron Ore Pellets", 4.8], ["Manganese Ore", 2.1], ["Pig Iron", 1.2], ["Copper Concentrate", 0.7]] },
-            { id: "santos", name: "Port of Santos", state: "Sao Paulo", sc: "SP", region: "Southeast", city: "Santos", color: "#059669", type: "Porto Organizado", rank: 2,
-                data: [{ y: 2021, t: 113279537, b: 4171 }, { y: 2022, t: 126216637, b: 4572 }, { y: 2023, t: 135901717, b: 4552 }, { y: 2024, t: 138692349, b: 4588 }, { y: 2025, t: 142819073, b: 4762 }],
+            { id: "santos", name: "Port of Santos", state: "Sao Paulo", sc: "SP", region: "Southeast", city: "Santos", color: "#0a8f93", type: "Porto Organizado", rank: 2,
+                data: [{ y: 2021, t: 113279537, b: 4171 }, { y: 2022, t: 126216637, b: 4572 }, { y: 2023, t: 135901717, b: 4552 }, { y: 2024, t: 138692349, b: 4588 }, { y: 2025, t: 131697035, b: 4762 }],
                 cargoes: [["Sugar", 22.5], ["Soybeans", 18.3], ["Containers", 17.8], ["Fertilisers", 12.4], ["Corn", 9.6]] },
             { id: "tubarao", name: "Tubarao Terminal", state: "Espirito Santo", sc: "ES", region: "Southeast", city: "Vitoria", color: "#1d4ed8", type: "Terminal Autorizado", rank: 3,
-                data: [{ y: 2021, t: 64100000, b: 592 }, { y: 2022, t: 68000000, b: 620 }, { y: 2023, t: 76000000, b: 648 }, { y: 2024, t: 77420000, b: 660 }, { y: 2025, t: 87400000, b: 710 }],
+                data: [{ y: 2021, t: 64100000, b: 592 }, { y: 2022, t: 68000000, b: 620 }, { y: 2023, t: 76000000, b: 648 }, { y: 2024, t: 77420000, b: 660 }, { y: 2025, t: 78688237, b: 710 }],
                 cargoes: [["Iron Ore", 72.4], ["Iron Ore Pellets", 18.6], ["Coal (import)", 5.2], ["Soy Products", 2.1], ["Pig Iron", 1.7]] },
             { id: "angra", name: "Angra dos Reis Waterway Terminal", state: "Rio de Janeiro", sc: "RJ", region: "Southeast", city: "Angra dos Reis", color: "#7c3aed", type: "Terminal Autorizado", rank: 4,
-                data: [{ y: 2021, t: 64100000, b: 420 }, { y: 2022, t: 59800000, b: 395 }, { y: 2023, t: 63700000, b: 410 }, { y: 2024, t: 62720000, b: 405 }, { y: 2025, t: 70400000, b: 440 }],
+                data: [{ y: 2021, t: 64100000, b: 420 }, { y: 2022, t: 59800000, b: 395 }, { y: 2023, t: 63700000, b: 410 }, { y: 2024, t: 62720000, b: 405 }, { y: 2025, t: 64241333, b: 440 }],
                 cargoes: [["Crude Oil", 68.3], ["Petroleum Products", 21.5], ["LPG", 5.8], ["Bunker Fuel", 2.9], ["Lubricants", 1.5]] },
-            { id: "itaguai", name: "Port of Itaguai", state: "Rio de Janeiro", sc: "RJ", region: "Southeast", city: "Itaguai", color: "#0284c7", type: "Porto Organizado", rank: 5,
-                data: [{ y: 2021, t: 51723244, b: 661 }, { y: 2022, t: 50619463, b: 522 }, { y: 2023, t: 55778923, b: 526 }, { y: 2024, t: 60678241, b: 630 }, { y: 2025, t: 62835315, b: 643 }],
-                cargoes: [["Iron Ore", 52.8], ["Coal (import)", 22.4], ["Containers", 11.6], ["Pig Iron", 7.3], ["Alumina", 5.9]] },
-            { id: "paranagua", name: "Port of Paranagua", state: "Parana", sc: "PR", region: "South", city: "Paranagua", color: "#d97706", type: "Porto Organizado", rank: 6,
-                data: [{ y: 2021, t: 51606028, b: 2040 }, { y: 2022, t: 52015004, b: 2011 }, { y: 2023, t: 58318875, b: 2173 }, { y: 2024, t: 59280249, b: 2310 }, { y: 2025, t: 66408475, b: 2395 }],
+            { id: "paranagua", name: "Port of Paranagua", state: "Parana", sc: "PR", region: "South", city: "Paranagua", color: "#d97706", type: "Porto Organizado", rank: 5,
+                data: [{ y: 2021, t: 51606028, b: 2040 }, { y: 2022, t: 52015004, b: 2011 }, { y: 2023, t: 58318875, b: 2173 }, { y: 2024, t: 59280249, b: 2310 }, { y: 2025, t: 61057806, b: 2395 }],
                 cargoes: [["Soybeans & Soy Meal", 28.7], ["Containers", 19.2], ["Sugar", 16.4], ["Fertilisers", 14.8], ["Corn", 10.3]] },
-            { id: "sao-sebastiao", name: "Sao Sebastiao Waterway Terminal", state: "Sao Paulo", sc: "SP", region: "Southeast", city: "Sao Sebastiao", color: "#be185d", type: "Terminal Autorizado", rank: 7,
-                data: [{ y: 2021, t: 54500000, b: 480 }, { y: 2022, t: 58900000, b: 510 }, { y: 2023, t: 57500000, b: 495 }, { y: 2024, t: 53310000, b: 460 }, { y: 2025, t: 54100000, b: 465 }],
-                cargoes: [["Crude Oil", 74.2], ["Petroleum Products", 18.6], ["LPG", 3.8], ["Ethanol", 2.1], ["Bunker Fuel", 1.3]] },
-            { id: "acu-petroleo", name: "Acu Oil Terminal", state: "Rio de Janeiro", sc: "RJ", region: "Southeast", city: "Sao Joao da Barra", color: "#92400e", type: "Terminal Autorizado", rank: 8,
-                data: [{ y: 2021, t: 32600000, b: 310 }, { y: 2022, t: 43400000, b: 380 }, { y: 2023, t: 57400000, b: 490 }, { y: 2024, t: 50240000, b: 440 }, { y: 2025, t: 60400000, b: 510 }],
+            { id: "itaguai", name: "Port of Itaguai", state: "Rio de Janeiro", sc: "RJ", region: "Southeast", city: "Itaguai", color: "#0284c7", type: "Porto Organizado", rank: 6,
+                data: [{ y: 2021, t: 51723244, b: 661 }, { y: 2022, t: 50619463, b: 522 }, { y: 2023, t: 55778923, b: 526 }, { y: 2024, t: 60678241, b: 630 }, { y: 2025, t: 56953389, b: 643 }],
+                cargoes: [["Iron Ore", 52.8], ["Coal (import)", 22.4], ["Containers", 11.6], ["Pig Iron", 7.3], ["Alumina", 5.9]] },
+            { id: "acu-petroleo", name: "Acu Oil Terminal", state: "Rio de Janeiro", sc: "RJ", region: "Southeast", city: "Sao Joao da Barra", color: "#92400e", type: "Terminal Autorizado", rank: 7,
+                data: [{ y: 2021, t: 32600000, b: 310 }, { y: 2022, t: 43400000, b: 380 }, { y: 2023, t: 57400000, b: 490 }, { y: 2024, t: 50240000, b: 440 }, { y: 2025, t: 54521520, b: 510 }],
                 cargoes: [["Crude Oil", 82.4], ["Petroleum Products", 10.8], ["LPG", 3.2], ["Natural Gas Liquids", 2.4], ["Bunker Fuel", 1.2]] },
+            { id: "sao-sebastiao", name: "Sao Sebastiao Waterway Terminal", state: "Sao Paulo", sc: "SP", region: "Southeast", city: "Sao Sebastiao", color: "#be185d", type: "Terminal Autorizado", rank: 8,
+                data: [{ y: 2021, t: 54500000, b: 480 }, { y: 2022, t: 58900000, b: 510 }, { y: 2023, t: 57500000, b: 495 }, { y: 2024, t: 53310000, b: 460 }, { y: 2025, t: 49853973, b: 465 }],
+                cargoes: [["Crude Oil", 74.2], ["Petroleum Products", 18.6], ["LPG", 3.8], ["Ethanol", 2.1], ["Bunker Fuel", 1.3]] },
             { id: "itaqui", name: "Port of Itaqui", state: "Maranhao", sc: "MA", region: "Northeast", city: "Sao Luis", color: "#6d28d9", type: "Porto Organizado", rank: 9,
-                data: [{ y: 2021, t: 31025619, b: 967 }, { y: 2022, t: 33569710, b: 978 }, { y: 2023, t: 36329965, b: 1026 }, { y: 2024, t: 33884494, b: 968 }, { y: 2025, t: 36771880, b: 979 }],
+                data: [{ y: 2021, t: 31025619, b: 967 }, { y: 2022, t: 33569710, b: 978 }, { y: 2023, t: 36329965, b: 1026 }, { y: 2024, t: 33884494, b: 968 }, { y: 2025, t: 34205569, b: 979 }],
                 cargoes: [["Soybeans & Soy Meal", 34.2], ["Iron Ore", 18.6], ["Coal (import)", 15.3], ["Corn", 14.8], ["Fertilisers", 9.4]] },
-            { id: "ilha-guaiba", name: "Ilha Guaiba Terminal", state: "Rio de Janeiro", sc: "RJ", region: "Southeast", city: "Mangaratiba", color: "#065f46", type: "Terminal Autorizado", rank: 10,
-                data: [{ y: 2021, t: 26300000, b: 220 }, { y: 2022, t: 27700000, b: 235 }, { y: 2023, t: 29500000, b: 248 }, { y: 2024, t: 32130000, b: 265 }, { y: 2025, t: 31500000, b: 258 }],
-                cargoes: [["Iron Ore", 94.6], ["Iron Ore Pellets", 3.2], ["Manganese Ore", 1.1], ["Bauxite", 0.7], ["Coal (import)", 0.4]] },
-            { id: "riogrande", name: "Port of Rio Grande", state: "Rio Grande do Sul", sc: "RS", region: "South", city: "Rio Grande", color: "#dc2626", type: "Porto Organizado", rank: 11,
-                data: [{ y: 2021, t: 28191092, b: 2434 }, { y: 2022, t: 24175428, b: 2261 }, { y: 2023, t: 25888360, b: 2234 }, { y: 2024, t: 29318642, b: 2343 }, { y: 2025, t: 31634709, b: 2510 }],
+            { id: "riogrande", name: "Port of Rio Grande", state: "Rio Grande do Sul", sc: "RS", region: "South", city: "Rio Grande", color: "#dc2626", type: "Porto Organizado", rank: 10,
+                data: [{ y: 2021, t: 28191092, b: 2434 }, { y: 2022, t: 24175428, b: 2261 }, { y: 2023, t: 25888360, b: 2234 }, { y: 2024, t: 29318642, b: 2343 }, { y: 2025, t: 29045052, b: 2510 }],
                 cargoes: [["Soybeans & Soy Meal", 26.4], ["Containers", 22.8], ["Fertilisers", 16.2], ["Rice", 8.7], ["Wood & Cellulose", 7.3]] },
-            { id: "acu-minerio", name: "Acu Iron Ore Terminal", state: "Rio de Janeiro", sc: "RJ", region: "Southeast", city: "Sao Joao da Barra", color: "#78350f", type: "Terminal Autorizado", rank: 12,
-                data: [{ y: 2021, t: 23100000, b: 195 }, { y: 2022, t: 21400000, b: 180 }, { y: 2023, t: 24000000, b: 200 }, { y: 2024, t: 25010000, b: 210 }, { y: 2025, t: 24200000, b: 204 }],
-                cargoes: [["Iron Ore", 96.8], ["Iron Ore Pellets", 1.8], ["Manganese Ore", 0.7], ["Bauxite", 0.4], ["Other Minerals", 0.3]] },
-            { id: "suape", name: "Port of Suape", state: "Pernambuco", sc: "PE", region: "Northeast", city: "Ipojuca", color: "#b45309", type: "Porto Organizado", rank: 13,
-                data: [{ y: 2021, t: 22100000, b: 1520 }, { y: 2022, t: 24700000, b: 1580 }, { y: 2023, t: 24000000, b: 1600 }, { y: 2024, t: 24840000, b: 1628 }, { y: 2025, t: 24300000, b: 1610 }],
-                cargoes: [["Containers", 28.4], ["Petroleum Products", 24.6], ["Wheat", 13.2], ["Corn", 11.7], ["Sugar", 8.3]] },
-            { id: "porto-sudeste", name: "Porto Sudeste Terminal", state: "Rio de Janeiro", sc: "RJ", region: "Southeast", city: "Itaguai", color: "#4338ca", type: "Terminal Autorizado", rank: 14,
-                data: [{ y: 2021, t: 17900000, b: 165 }, { y: 2022, t: 18500000, b: 170 }, { y: 2023, t: 27400000, b: 245 }, { y: 2024, t: 24720000, b: 220 }, { y: 2025, t: 30600000, b: 270 }],
+            { id: "ilha-guaiba", name: "Ilha Guaiba Terminal", state: "Rio de Janeiro", sc: "RJ", region: "Southeast", city: "Mangaratiba", color: "#065f46", type: "Terminal Autorizado", rank: 11,
+                data: [{ y: 2021, t: 26300000, b: 220 }, { y: 2022, t: 27700000, b: 235 }, { y: 2023, t: 29500000, b: 248 }, { y: 2024, t: 32130000, b: 265 }, { y: 2025, t: 28697653, b: 258 }],
+                cargoes: [["Iron Ore", 94.6], ["Iron Ore Pellets", 3.2], ["Manganese Ore", 1.1], ["Bauxite", 0.7], ["Coal (import)", 0.4]] },
+            { id: "porto-sudeste", name: "Porto Sudeste Terminal", state: "Rio de Janeiro", sc: "RJ", region: "Southeast", city: "Itaguai", color: "#4338ca", type: "Terminal Autorizado", rank: 12,
+                data: [{ y: 2021, t: 17900000, b: 165 }, { y: 2022, t: 18500000, b: 170 }, { y: 2023, t: 27400000, b: 245 }, { y: 2024, t: 24720000, b: 220 }, { y: 2025, t: 28020831, b: 270 }],
                 cargoes: [["Iron Ore", 97.2], ["Iron Ore Pellets", 1.4], ["Manganese Ore", 0.8], ["Bauxite", 0.4], ["Other Minerals", 0.2]] },
-            { id: "madre-de-deus", name: "Madre de Deus Waterway Terminal", state: "Bahia", sc: "BA", region: "Northeast", city: "Madre de Deus", color: "#0e7490", type: "Terminal Autorizado", rank: 15,
-                data: [{ y: 2021, t: 16600000, b: 310 }, { y: 2022, t: 19900000, b: 360 }, { y: 2023, t: 20900000, b: 375 }, { y: 2024, t: 20810000, b: 370 }, { y: 2025, t: 20200000, b: 360 }],
-                cargoes: [["Petroleum Products", 52.4], ["Crude Oil", 34.8], ["LPG", 6.3], ["Ethanol", 3.8], ["Chemicals", 2.7]] },
-            { id: "vila-do-conde", name: "Port of Vila do Conde", state: "Para", sc: "PA", region: "North", city: "Barcarena", color: "#15803d", type: "Porto Organizado", rank: 16,
-                data: [{ y: 2021, t: 16400000, b: 1520 }, { y: 2022, t: 17900000, b: 1600 }, { y: 2023, t: 16800000, b: 1560 }, { y: 2024, t: 20160000, b: 1643 }, { y: 2025, t: 21300000, b: 1700 }],
+            { id: "suape", name: "Port of Suape", state: "Pernambuco", sc: "PE", region: "Northeast", city: "Ipojuca", color: "#b45309", type: "Porto Organizado", rank: 13,
+                data: [{ y: 2021, t: 22100000, b: 1520 }, { y: 2022, t: 24700000, b: 1580 }, { y: 2023, t: 24000000, b: 1600 }, { y: 2024, t: 24840000, b: 1628 }, { y: 2025, t: 22108350, b: 1610 }],
+                cargoes: [["Containers", 28.4], ["Petroleum Products", 24.6], ["Wheat", 13.2], ["Corn", 11.7], ["Sugar", 8.3]] },
+            { id: "acu-minerio", name: "Acu Iron Ore Terminal", state: "Rio de Janeiro", sc: "RJ", region: "Southeast", city: "Sao Joao da Barra", color: "#78350f", type: "Terminal Autorizado", rank: 14,
+                data: [{ y: 2021, t: 23100000, b: 195 }, { y: 2022, t: 21400000, b: 180 }, { y: 2023, t: 24000000, b: 200 }, { y: 2024, t: 25010000, b: 210 }, { y: 2025, t: 21963097, b: 204 }],
+                cargoes: [["Iron Ore", 96.8], ["Iron Ore Pellets", 1.8], ["Manganese Ore", 0.7], ["Bauxite", 0.4], ["Other Minerals", 0.3]] },
+            { id: "vila-do-conde", name: "Port of Vila do Conde", state: "Para", sc: "PA", region: "North", city: "Barcarena", color: "#15803d", type: "Porto Organizado", rank: 15,
+                data: [{ y: 2021, t: 16400000, b: 1520 }, { y: 2022, t: 17900000, b: 1600 }, { y: 2023, t: 16800000, b: 1560 }, { y: 2024, t: 20160000, b: 1643 }, { y: 2025, t: 18490905, b: 1700 }],
                 cargoes: [["Alumina", 32.4], ["Bauxite", 24.8], ["Kaolin", 14.2], ["Wood & Cellulose", 12.6], ["Petroleum Products", 8.3]] },
+            { id: "madre-de-deus", name: "Madre de Deus Waterway Terminal", state: "Bahia", sc: "BA", region: "Northeast", city: "Madre de Deus", color: "#0e7490", type: "Terminal Autorizado", rank: 16,
+                data: [{ y: 2021, t: 16600000, b: 310 }, { y: 2022, t: 19900000, b: 360 }, { y: 2023, t: 20900000, b: 375 }, { y: 2024, t: 20810000, b: 370 }, { y: 2025, t: 18401410, b: 360 }],
+                cargoes: [["Petroleum Products", 52.4], ["Crude Oil", 34.8], ["LPG", 6.3], ["Ethanol", 3.8], ["Chemicals", 2.7]] },
             { id: "pecem", name: "Pecem Port Terminal", state: "Ceara", sc: "CE", region: "Northeast", city: "Sao Goncalo do Amarante", color: "#c2410c", type: "Terminal Autorizado", rank: 17,
-                data: [{ y: 2021, t: 22400000, b: 820 }, { y: 2022, t: 16900000, b: 720 }, { y: 2023, t: 17100000, b: 730 }, { y: 2024, t: 19040000, b: 780 }, { y: 2025, t: 20500000, b: 810 }],
+                data: [{ y: 2021, t: 22400000, b: 820 }, { y: 2022, t: 16900000, b: 720 }, { y: 2023, t: 17100000, b: 730 }, { y: 2024, t: 19040000, b: 780 }, { y: 2025, t: 18327732, b: 810 }],
                 cargoes: [["Iron Ore", 28.6], ["Containers", 22.4], ["Steel Products", 16.8], ["Petroleum Products", 14.2], ["Fruits", 8.4]] },
             { id: "sao-francisco-sul", name: "Port of Sao Francisco do Sul", state: "Santa Catarina", sc: "SC", region: "South", city: "Sao Francisco do Sul", color: "#1e40af", type: "Porto Organizado", rank: 18,
-                data: [{ y: 2021, t: 13400000, b: 420 }, { y: 2022, t: 12700000, b: 400 }, { y: 2023, t: 16800000, b: 460 }, { y: 2024, t: 16960000, b: 472 }, { y: 2025, t: 17500000, b: 490 }],
+                data: [{ y: 2021, t: 13400000, b: 420 }, { y: 2022, t: 12700000, b: 400 }, { y: 2023, t: 16800000, b: 460 }, { y: 2024, t: 16960000, b: 472 }, { y: 2025, t: 16474183, b: 490 }],
                 cargoes: [["Soybeans & Soy Oil", 34.6], ["Corn", 18.3], ["Containers", 14.2], ["Petroleum Products", 12.8], ["Fertilisers", 9.6]] },
             { id: "santarem", name: "Port of Santarem", state: "Para", sc: "PA", region: "North", city: "Santarem", color: "#166534", type: "Porto Organizado", rank: 19,
-                data: [{ y: 2021, t: 10500000, b: 3200 }, { y: 2022, t: 13200000, b: 3500 }, { y: 2023, t: 15900000, b: 3750 }, { y: 2024, t: 16380000, b: 3804 }, { y: 2025, t: 18500000, b: 4000 }],
+                data: [{ y: 2021, t: 10500000, b: 3200 }, { y: 2022, t: 13200000, b: 3500 }, { y: 2023, t: 15900000, b: 3750 }, { y: 2024, t: 16380000, b: 3804 }, { y: 2025, t: 14733212, b: 4000 }],
                 cargoes: [["Soybeans", 52.4], ["Corn", 28.6], ["Soy Meal", 8.3], ["Fertilisers", 6.2], ["General Cargo", 4.5]] },
             { id: "ilha-dagua", name: "Ilha D'Agua Waterway Terminal", state: "Rio de Janeiro", sc: "RJ", region: "Southeast", city: "Rio de Janeiro", color: "#9f1239", type: "Terminal Autorizado", rank: 20,
-                data: [{ y: 2021, t: 21800000, b: 380 }, { y: 2022, t: 17200000, b: 310 }, { y: 2023, t: 16500000, b: 295 }, { y: 2024, t: 15790000, b: 282 }, { y: 2025, t: 15900000, b: 285 }],
+                data: [{ y: 2021, t: 21800000, b: 380 }, { y: 2022, t: 17200000, b: 310 }, { y: 2023, t: 16500000, b: 295 }, { y: 2024, t: 15790000, b: 282 }, { y: 2025, t: 14277301, b: 285 }],
                 cargoes: [["Petroleum Products", 48.6], ["Crude Oil", 38.2], ["LPG", 6.8], ["Bunker Fuel", 4.2], ["Chemicals", 2.2]] },
         ];
+
+        // ========== ALL FACILITIES (official ANTAQ, Mt) ==========
+        const ALL_FACILITIES = [{"n":"Terminal Marítimo de Ponta da Madeira","uf":"MA","pub":false,"c23":166.335,"c24":175.777,"c25":156.852,"pid":"ponta-madeira"},{"n":"Santos","uf":"SP","pub":true,"c23":135.902,"c24":138.692,"c25":131.697,"pid":"santos"},{"n":"Terminal de Tubarão","uf":"ES","pub":false,"c23":75.997,"c24":77.421,"c25":78.688,"pid":"tubarao"},{"n":"Terminal Aquaviário de Angra dos Reis","uf":"RJ","pub":false,"c23":63.667,"c24":62.721,"c25":64.241,"pid":"angra"},{"n":"Paranaguá","uf":"PR","pub":true,"c23":58.319,"c24":59.28,"c25":61.058,"pid":"paranagua"},{"n":"Itaguaí","uf":"RJ","pub":false,"c23":55.779,"c24":60.678,"c25":56.953,"pid":"itaguai"},{"n":"Terminal de Petróleo TPET/TOIL - Açu","uf":"RJ","pub":false,"c23":57.378,"c24":50.237,"c25":54.522,"pid":"acu-petroleo"},{"n":"Terminal Aquaviário de São Sebastião (Almirante Barroso)","uf":"SP","pub":false,"c23":57.521,"c24":53.308,"c25":49.854,"pid":"sao-sebastiao"},{"n":"Itaqui","uf":"MA","pub":true,"c23":36.33,"c24":33.884,"c25":34.206,"pid":"itaqui"},{"n":"Rio Grande","uf":"RS","pub":true,"c23":25.888,"c24":29.319,"c25":29.045,"pid":"riogrande"},{"n":"Terminal da Ilha Guaíba - TIG","uf":"RJ","pub":false,"c23":29.523,"c24":32.134,"c25":28.698,"pid":"ilha-guaiba"},{"n":"Porto Sudeste do Brasil S/A","uf":"RJ","pub":false,"c23":27.398,"c24":24.719,"c25":28.021,"pid":"porto-sudeste"},{"n":"Suape","uf":"PE","pub":true,"c23":24.015,"c24":24.842,"c25":22.108,"pid":"suape"},{"n":"Porto do Açu - Terminal de Minério","uf":"RJ","pub":false,"c23":24.043,"c24":25.015,"c25":21.963,"pid":"acu-minerio"},{"n":"Vila do Conde","uf":"PA","pub":true,"c23":16.788,"c24":20.163,"c25":18.491,"pid":"vila-do-conde"},{"n":"Terminal Aquaviário de Madre de Deus","uf":"BA","pub":false,"c23":20.937,"c24":20.807,"c25":18.401,"pid":"madre-de-deus"},{"n":"Terminal Portuário do Pecém","uf":"CE","pub":false,"c23":17.062,"c24":19.042,"c25":18.328,"pid":"pecem"},{"n":"São Francisco do Sul","uf":"SC","pub":true,"c23":16.834,"c24":16.961,"c25":16.474,"pid":"sao-francisco-sul"},{"n":"Rio de Janeiro","uf":"RJ","pub":true,"c23":11.062,"c24":15.424,"c25":15.288},{"n":"DP World Santos","uf":"SP","pub":false,"c23":13.496,"c24":15.389,"c25":15.082},{"n":"Porto Itapoá Terminais Portuários","uf":"SC","pub":false,"c23":11.726,"c24":13.606,"c25":14.836},{"n":"Santarém","uf":"PA","pub":true,"c23":15.945,"c24":16.378,"c25":14.733,"pid":"santarem"},{"n":"Terminal Marítimo Ponta Ubu","uf":"ES","pub":false,"c23":9.311,"c24":9.831,"c25":14.427},{"n":"Terminal Aquaviário da Ilha D'Água","uf":"RJ","pub":false,"c23":16.511,"c24":15.786,"c25":14.277,"pid":"ilha-dagua"},{"n":"Terminal Portuário Privativo da Alumar","uf":"MA","pub":false,"c23":13.36,"c24":14.274,"c25":13.282},{"n":"Terminal Integrador Portuário Luiz Antonio Mesquita - TIPLAM","uf":"SP","pub":false,"c23":13.239,"c24":13.475,"c25":12.936},{"n":"Terminal Vila do Conde","uf":"PA","pub":false,"c23":12.491,"c24":11.518,"c25":11.938},{"n":"Terminal Trombetas","uf":"PA","pub":false,"c23":12.606,"c24":13.051,"c25":11.565},{"n":"Terminal Graneleiro Hermasa","uf":"AM","pub":false,"c23":11.375,"c24":9.381,"c25":11.206},{"n":"Terminal Aquaviário de Osório","uf":"RS","pub":false,"c23":10.68,"c24":11.682,"c25":9.632},{"n":"Portonave - Terminais Portuários de Navegantes","uf":"SC","pub":false,"c23":14.235,"c24":12.731,"c25":9.522},{"n":"Terminal Aquaviário de São Francisco do Sul","uf":"SC","pub":false,"c23":10.657,"c24":9.603,"c25":9.464},{"n":"Terminal Portuário Graneleiro de Barcarena","uf":"PA","pub":false,"c23":8.46,"c24":7.827,"c25":9.206},{"n":"Terminal de Praia Mole","uf":"ES","pub":false,"c23":10.452,"c24":10.382,"c25":9.069},{"n":"Porto Chibatão","uf":"AM","pub":false,"c23":6.467,"c24":6.815,"c25":7.866},{"n":"Terminal Fluvial de Juruti","uf":"PA","pub":false,"c23":5.69,"c24":6.639,"c25":7.012},{"n":"Portocel - Terminal Especializado de Barra do Riacho","uf":"ES","pub":false,"c23":7.642,"c24":7.446,"c25":6.814},{"n":"Terminal Portuário Cotegipe","uf":"BA","pub":false,"c23":5.903,"c24":5.354,"c25":6.709},{"n":"Imbituba","uf":"SC","pub":true,"c23":7.697,"c24":8.317,"c25":6.618},{"n":"Terminal Marítimo Alfandegado Privativo de Uso Misto de Praia Mole","uf":"ES","pub":false,"c23":7.405,"c24":7.134,"c25":6.503},{"n":"Terbian - Terminal Bianchini","uf":"RS","pub":false,"c23":8.19,"c24":8.079,"c25":6.337},{"n":"Vitória","uf":"ES","pub":true,"c23":6.979,"c24":8.263,"c25":6.205},{"n":"Salvador","uf":"BA","pub":true,"c23":4.677,"c24":6.603,"c25":5.868},{"n":"Terminal Portuário Novo Remanso","uf":"AM","pub":false,"c23":2.063,"c24":3.827,"c25":5.642},{"n":"Aratu","uf":"BA","pub":true,"c23":6.685,"c24":6.561,"c25":5.436},{"n":"Terminal TKCSA","uf":"RJ","pub":false,"c23":8.476,"c24":7.377,"c25":5.425},{"n":"Hidrovias do Brasil Miritituba","uf":"PA","pub":false,"c23":5.386,"c24":4.553,"c25":5.275},{"n":"Porto Gregório Curvo","uf":"MS","pub":false,"c23":3.159,"c24":2.381,"c25":5.143},{"n":"Fortaleza","uf":"CE","pub":true,"c23":4.425,"c24":4.829,"c25":4.299},{"n":"Cattalini Terminais Marítimos","uf":"PR","pub":false,"c23":4.916,"c24":4.409,"c25":4.056},{"n":"Itajaí","uf":"SC","pub":true,"c23":0.364,"c24":1.147,"c25":3.911},{"n":"Sucocítrico Cutrale","uf":"SP","pub":false,"c23":3.74,"c24":3.255,"c25":3.725},{"n":"ETC Miritituba","uf":"PA","pub":false,"c23":3.274,"c24":3.151,"c25":3.633},{"n":"Terminal de Expedição de Grãos Portochuelo","uf":"RO","pub":false,"c23":3.551,"c24":2.591,"c25":3.437},{"n":"Santana","uf":"AP","pub":true,"c23":3.623,"c24":3.158,"c25":3.427},{"n":"Areia Branca","uf":"RN","pub":true,"c23":3.815,"c24":3.372,"c25":3.085},{"n":"Terminais Fluviais do Brasil","uf":"AM","pub":false,"c23":2.729,"c24":3.083,"c25":3.07},{"n":"Cargill Agrícola S.A. (ETC Miritituba/PA)","uf":"PA","pub":false,"c23":3.07,"c24":3.027,"c25":2.83},{"n":"CMPC Guaíba","uf":"RS","pub":false,"c23":2.813,"c24":3.026,"c25":2.698},{"n":"Estação Cianport Miritituba","uf":"PA","pub":false,"c23":2.576,"c24":1.885,"c25":2.614},{"n":"Yara Brasil Fertilizantes","uf":"RS","pub":false,"c23":2.574,"c24":2.467,"c25":2.566},{"n":"Belém","uf":"PA","pub":true,"c23":3.725,"c24":3.887,"c25":2.464},{"n":"Terminal Ponta da Montanha","uf":"PA","pub":false,"c23":5.231,"c24":5.89,"c25":2.308},{"n":"Super Terminais Comércio e Indústria","uf":"AM","pub":false,"c23":1.043,"c24":1.844,"c25":2.26},{"n":"Maceió","uf":"AL","pub":true,"c23":2.641,"c24":2.672,"c25":2.224},{"n":"Terminal Portuário Bunge Alimentos","uf":"RS","pub":false,"c23":2.118,"c24":1.884,"c25":2.216},{"n":"TUP Vetorial Logística","uf":"MS","pub":false,"c23":0.84,"c24":0.451,"c25":2.051},{"n":"Porto do Açu - Terminal TMULT e TCAR","uf":"RJ","pub":false,"c23":2.209,"c24":1.819,"c25":1.941},{"n":"Porto Velho","uf":"RO","pub":true,"c23":1.714,"c24":2.018,"c25":1.853},{"n":"Estação Cujubinzinho","uf":"RO","pub":false,"c23":1.969,"c24":1.842,"c25":1.695},{"n":"Terminal Aquaviário de Manaus","uf":"AM","pub":false,"c23":2.352,"c24":1.501,"c25":1.581},{"n":"ATEM Manaus","uf":"AM","pub":false,"c23":0.88,"c24":1.159,"c25":1.493},{"n":"Terminal Aquaviário de Guamaré","uf":"RN","pub":false,"c23":1.942,"c24":1.647,"c25":1.472},{"n":"Recife","uf":"PE","pub":true,"c23":1.427,"c24":1.707,"c25":1.4},{"n":"São Sebastião","uf":"SP","pub":true,"c23":1.005,"c24":1.53,"c25":1.333},{"n":"Estaleiro Brasfels","uf":"RJ","pub":false,"c23":0.785,"c24":2.671,"c25":1.324},{"n":"Granel Química Ladário","uf":"MS","pub":false,"c23":2.29,"c24":0.351,"c25":1.314},{"n":"Antonina","uf":"PR","pub":true,"c23":1.356,"c24":1.994,"c25":1.259},{"n":"Cabedelo","uf":"PB","pub":true,"c23":1.337,"c24":1.385,"c25":1.073},{"n":"Pelotas","uf":"RS","pub":true,"c23":1.057,"c24":0.873,"c25":1.069},{"n":"LDC São Simão","uf":"GO","pub":false,"c23":0.977,"c24":0.968,"c25":1.043},{"n":"LDC Pederneiras","uf":"SP","pub":false,"c23":0.976,"c24":0.971,"c25":1.027},{"n":"TUP TMB - Terminal Marítimo de Belmonte","uf":"BA","pub":false,"c23":1.128,"c24":1.083,"c25":0.982},{"n":"TUP J F de Oliveira de Belém","uf":"PA","pub":false,"c23":1.029,"c24":1.139,"c25":0.882},{"n":"Terminal Marítimo Inácio Barbosa - TMIB","uf":"SE","pub":false,"c23":1.197,"c24":0.87,"c25":0.813},{"n":"Terminal Santa Clara","uf":"RS","pub":false,"c23":0.961,"c24":0.743,"c25":0.8},{"n":"Terminal Aquaviário Solimões - Coari","uf":"AM","pub":false,"c23":0.972,"c24":0.826,"c25":0.783},{"n":"Terminal Itapuã","uf":"BA","pub":false,"c23":0.414,"c24":0.261,"c25":0.746},{"n":"TUP Enseada Naval","uf":"BA","pub":false,"c23":0.753,"c24":0.528,"c25":0.716},{"n":"Terminal de Regaseificação do Açu","uf":"RJ","pub":false,"c23":0.018,"c24":0.306,"c25":0.695},{"n":"Brasil Logística Offshore e Estaleiro Naval","uf":"RJ","pub":false,"c23":0.365,"c24":0.666,"c25":0.669},{"n":"Terminal UNI-Z","uf":"PA","pub":false,"c23":0.251,"c24":0.395,"c25":0.651},{"n":"ATEM Santarém","uf":"PA","pub":false,"c23":0.03,"c24":0.046,"c25":0.57},{"n":"Terminal de Uso Privado de Macau","uf":"RN","pub":false,"c23":0.821,"c24":0.67,"c25":0.55},{"n":"Terminal Marítimo Privativo de Cubatão - TMPC","uf":"SP","pub":false,"c23":1.021,"c24":0.972,"c25":0.545},{"n":"Terminal Aquaviário de Aracaju","uf":"SE","pub":false,"c23":0.293,"c24":0.542,"c25":0.542},{"n":"ATR Logística - Chibatão","uf":"AM","pub":false,"c23":0.679,"c24":0.698,"c25":0.537},{"n":"Bianchini Canoas","uf":"RS","pub":false,"c23":0.699,"c24":0.552,"c25":0.526},{"n":"TUP Moss","uf":"AM","pub":false,"c23":0.499,"c24":0.517,"c25":0.517},{"n":"J. F. de Oliveira - Manaus","uf":"AM","pub":false,"c23":0.564,"c24":0.593,"c25":0.503},{"n":"ATEM Belém-PA","uf":"PA","pub":false,"c23":null,"c24":0.131,"c25":0.502},{"n":"Porto Murucupi","uf":"PA","pub":false,"c23":0.605,"c24":0.739,"c25":0.465},{"n":"Natal","uf":"RN","pub":true,"c23":0.445,"c24":0.409,"c25":0.446},{"n":"Terminal de Barcaças Oceânicas","uf":"ES","pub":false,"c23":0.509,"c24":0.528,"c25":0.44},{"n":"Terminal Marítimo Dow","uf":"SP","pub":false,"c23":0.26,"c24":0.411,"c25":0.435},{"n":"Terminal Marítimo Dow Aratu - Bahia","uf":"BA","pub":false,"c23":0.532,"c24":0.523,"c25":0.421},{"n":"Merlim","uf":"RS","pub":false,"c23":0.495,"c24":0.37,"c25":0.42},{"n":"TUP Ibepar","uf":"AM","pub":false,"c23":0.487,"c24":0.569,"c25":0.403},{"n":"TUP Bertolini - Santarém","uf":"PA","pub":false,"c23":0.445,"c24":0.504,"c25":0.396},{"n":"Terminal de Combustíveis Marítimos do Açu - TECMA","uf":"RJ","pub":false,"c23":0.275,"c24":0.335,"c25":0.394},{"n":"Terminal Aquaviário de Ilha Redonda e Terminal Aquaviário da Ilha Comprida","uf":"RJ","pub":false,"c23":0.251,"c24":0.21,"c25":0.394},{"n":"Itahum Terminal","uf":"MS","pub":false,"c23":1.628,"c24":0.132,"c25":0.374},{"n":"TEVEL","uf":"RO","pub":false,"c23":0.402,"c24":0.374,"c25":0.368},{"n":"Amazon Aço Indústria e Comércio Ltda","uf":"AM","pub":false,"c23":0.248,"c24":0.227,"c25":0.363},{"n":"Tup da Salina Francisco Menescal","uf":"RN","pub":false,"c23":0.525,"c24":0.31,"c25":0.357},{"n":"Petróleo Sabbá - Miritituba","uf":"PA","pub":false,"c23":0.424,"c24":0.307,"c25":0.356},{"n":"TUP Bertolini - Belém","uf":"PA","pub":false,"c23":0.43,"c24":0.508,"c25":0.35},{"n":"Terminal Aquaviário do Norte Capixaba","uf":"ES","pub":false,"c23":0.438,"c24":0.369,"c25":0.34},{"n":"Cargill Agrícola","uf":"RO","pub":false,"c23":1.099,"c24":0.933,"c25":0.325},{"n":"Porto Alegre","uf":"RS","pub":true,"c23":0.8,"c24":0.727,"c25":0.318},{"n":"Ciagram Portos e Navegação da Amazônia","uf":"AM","pub":false,"c23":0.418,"c24":0.439,"c25":0.318},{"n":"Terminal Braskem","uf":"AL","pub":false,"c23":0.685,"c24":0.58,"c25":0.311},{"n":"Estação EAG - Bertolini","uf":"AM","pub":false,"c23":0.268,"c24":0.221,"c25":0.285},{"n":"Angra dos Reis","uf":"RJ","pub":true,"c23":0.021,"c24":0.067,"c25":0.27},{"n":"Cimento Vencemos","uf":"AM","pub":false,"c23":0.228,"c24":0.17,"c25":0.256},{"n":"Oleoplan","uf":"RS","pub":false,"c23":0.389,"c24":0.207,"c25":0.249},{"n":"TERMINAL DE MACAPA","uf":"AP","pub":false,"c23":0.134,"c24":0.155,"c25":0.235},{"n":"Administração de Bens de Infraestrutura - ABI","uf":"PA","pub":false,"c23":0.224,"c24":0.37,"c25":0.234},{"n":"Base Secundária Ipiranga de Porto Velho","uf":"RO","pub":false,"c23":0.251,"c24":0.248,"c25":0.231},{"n":"Terminal de Embarque Marítimo da Salina Diamante Branco","uf":"RN","pub":false,"c23":0.0,"c24":0.111,"c25":0.231},{"n":"ATEM PVH","uf":"RO","pub":false,"c23":0.21,"c24":0.211,"c25":0.22},{"n":"Terminal Distribuidora Equador Manaus","uf":"AM","pub":false,"c23":0.129,"c24":0.124,"c25":0.216},{"n":"Belmont","uf":"RO","pub":false,"c23":0.303,"c24":0.217,"c25":0.211},{"n":"ABI Miritituba","uf":"PA","pub":false,"c23":0.295,"c24":0.231,"c25":0.208},{"n":"Ilhéus","uf":"BA","pub":true,"c23":0.528,"c24":0.232,"c25":0.204},{"n":"TUP da Salina Guanabara","uf":"RN","pub":false,"c23":0.272,"c24":0.265,"c25":0.196},{"n":"Terminal Aquaviário de Niterói","uf":"RS","pub":false,"c23":0.195,"c24":0.073,"c25":0.191},{"n":"Cosan Lubrificantes e Especialidades","uf":"RJ","pub":false,"c23":0.243,"c24":0.257,"c25":0.189},{"n":"Teporti","uf":"SC","pub":false,"c23":0.123,"c24":0.172,"c25":0.188},{"n":"Unidade Misturadora de Porto Alegre","uf":"RS","pub":false,"c23":0.005,"c24":0.138,"c25":0.176},{"n":"AIVEL","uf":"RO","pub":false,"c23":0.24,"c24":0.155,"c25":0.176},{"n":"Terminal de Regaseificação de GNL da Bahia - TRBA","uf":"BA","pub":false,"c23":0.308,"c24":0.872,"c25":0.176},{"n":"ATEM Miritituba","uf":"PA","pub":false,"c23":0.142,"c24":0.06,"c25":0.169},{"n":"Terminal Flexível de GNL da Baía da Guanabara","uf":"RJ","pub":false,"c23":0.097,"c24":0.143,"c25":0.169},{"n":"Petróleo Sabbá - Terminal Manaus","uf":"AM","pub":false,"c23":0.144,"c24":0.126,"c25":0.168},{"n":"Niterói","uf":"RJ","pub":true,"c23":0.042,"c24":0.03,"c25":0.148},{"n":"Distribuidora Equador de Produtos de Petróleo S.A","uf":"RO","pub":false,"c23":0.177,"c24":0.162,"c25":0.147},{"n":"Porto de Itaituba da Caramuru Alimentos","uf":"PA","pub":false,"c23":0.113,"c24":0.09,"c25":0.135},{"n":"Terminal Marítimo Ponte do Thun","uf":"RJ","pub":false,"c23":0.096,"c24":0.112,"c25":0.124},{"n":"Chibatão Navegação e Comércio","uf":"AM","pub":false,"c23":0.224,"c24":0.19,"c25":0.123},{"n":"Terminal Marítimo Braskem","uf":"RJ","pub":false,"c23":0.161,"c24":0.165,"c25":0.118},{"n":"F. H. de Oliveira Peixoto","uf":"RO","pub":false,"c23":0.13,"c24":0.141,"c25":0.115},{"n":"Terminal Privado Copelmi","uf":"RS","pub":false,"c23":0.115,"c24":0.074,"c25":0.109},{"n":"Terminal Ilha do Governador","uf":"RJ","pub":false,"c23":0.102,"c24":0.132,"c25":0.107},{"n":"Terminal Hidroviário Cimbagé","uf":"RS","pub":false,"c23":0.198,"c24":0.145,"c25":0.105},{"n":"Terminal Aquaviário de Barra do Riacho","uf":"ES","pub":false,"c23":0.088,"c24":0.101,"c25":0.086},{"n":"Base de Oriximiná - BARIX","uf":"PA","pub":false,"c23":0.0,"c24":0.084,"c25":0.084},{"n":"Terminal Portuário Braskarne","uf":"SC","pub":false,"c23":0.082,"c24":0.111,"c25":0.078},{"n":"Ronav","uf":"AM","pub":false,"c23":0.109,"c24":0.098,"c25":0.073},{"n":"TUP Ocrim","uf":"AM","pub":false,"c23":0.094,"c24":0.064,"c25":0.072},{"n":"Terminal Fogás","uf":"RO","pub":false,"c23":0.076,"c24":0.066,"c25":0.064},{"n":"Passarão","uf":"RO","pub":false,"c23":0.15,"c24":0.123,"c25":0.062},{"n":"Barra do Rio Terminal Portuário","uf":"SC","pub":false,"c23":0.009,"c24":0.022,"c25":0.059},{"n":"Base Logística de Dutos","uf":"SP","pub":false,"c23":0.019,"c24":0.045,"c25":0.057},{"n":"Terminal Fluvial Caulim","uf":"PA","pub":false,"c23":0.064,"c24":0.06,"c25":0.052},{"n":"Belo Monte Logística de Terminal","uf":"PA","pub":false,"c23":0.024,"c24":0.027,"c25":0.048},{"n":"Companhia Brasileira de Asfalto da Amazônia","uf":"PA","pub":false,"c23":0.064,"c24":0.079,"c25":0.04},{"n":"Terminal de Gás do Sul - Tergasul","uf":"RS","pub":false,"c23":0.091,"c24":0.047,"c25":0.038},{"n":"Ponta Negra","uf":"AM","pub":false,"c23":0.091,"c24":0.088,"c25":0.035},{"n":"Companhia Portuária Vila Velha - CPVV","uf":"ES","pub":false,"c23":0.019,"c24":0.049,"c25":0.033},{"n":"Terminal Saint-Gobain Icoaraci","uf":"PA","pub":false,"c23":0.047,"c24":0.042,"c25":0.033},{"n":"TERMINAL TECHNIPFMC DO BRASIL","uf":"RJ","pub":false,"c23":0.044,"c24":0.033,"c25":0.027},{"n":"Rio Amazonas Terminais e Empreendimentos","uf":"AM","pub":false,"c23":0.126,"c24":0.059,"c25":0.026},{"n":"TUP CESARI","uf":"PA","pub":false,"c23":0.001,"c24":0.0,"c25":0.023},{"n":"Terminal Amazongás","uf":"RO","pub":false,"c23":0.025,"c24":0.021,"c25":0.022},{"n":"Terminal Nov Flexibles","uf":"RJ","pub":false,"c23":0.02,"c24":0.026,"c25":0.021},{"n":"TUP Supergasbrás","uf":"RS","pub":false,"c23":0.014,"c24":0.003,"c25":0.019},{"n":"Porto Brasilit","uf":"AM","pub":false,"c23":0.022,"c24":0.029,"c25":0.019},{"n":"Base Ipiranga Santarém","uf":"PA","pub":false,"c23":0.033,"c24":0.007,"c25":0.016},{"n":"Porto Crai","uf":"PA","pub":false,"c23":0.053,"c24":0.024,"c25":0.008},{"n":"J. F. de Oliveira Humaitá","uf":"AM","pub":false,"c23":null,"c24":0.026,"c25":0.007},{"n":"TUP Intermoor - Base de Apoio Marítimo Intermoor Açú","uf":"RJ","pub":false,"c23":0.01,"c24":0.007,"c25":0.006},{"n":"Porto CRA","uf":"PA","pub":false,"c23":0.057,"c24":0.061,"c25":0.006},{"n":"Base de Distribuição Secundária de Itaituba","uf":"PA","pub":false,"c23":0.001,"c24":0.001,"c25":0.005},{"n":"Poly Terminais Portuários","uf":"SC","pub":false,"c23":0.01,"c24":0.006,"c25":0.005},{"n":"Terminal de Munguba","uf":"PA","pub":false,"c23":0.009,"c24":0.001,"c25":0.004},{"n":"Bemar III","uf":"AM","pub":false,"c23":0.103,"c24":0.044,"c25":0.004},{"n":"Terminal Portuário da Nuclep","uf":"RJ","pub":false,"c23":0.002,"c24":0.002,"c25":0.002},{"n":"Terminal Dome","uf":"RJ","pub":false,"c23":0.003,"c24":0.002,"c25":0.001},{"n":"Subsea 7 do Brasil Serviços LTDA","uf":"RJ","pub":false,"c23":0.0,"c24":0.0,"c25":0.001},{"n":"MAC LAREN OIL ESTALEIROS","uf":"RJ","pub":false,"c23":0.001,"c24":0.001,"c25":0.001},{"n":"Terminal MFX","uf":"BA","pub":false,"c23":0.001,"c24":0.001,"c25":0.001},{"n":"Metasa SA Indústria Metalurgica","uf":"-","pub":false,"c23":null,"c24":null,"c25":0.0},{"n":"Ipiranga Manaus","uf":"AM","pub":false,"c23":0.0,"c24":0.0,"c25":0.0},{"n":"Terminal Navecunha","uf":"AM","pub":false,"c23":0.002,"c24":0.002,"c25":0.0},{"n":"Mac Laren Operações Offshore","uf":"RJ","pub":false,"c23":0.0,"c24":0.0,"c25":0.0},{"n":"TUP Zemax","uf":"ES","pub":false,"c23":0.0,"c24":0.0,"c25":0.0},{"n":"Trocadeiro","uf":"SC","pub":false,"c23":null,"c24":0.0,"c25":0.0},{"n":"Porto de Guamaré","uf":"RN","pub":false,"c23":0.0,"c24":0.0,"c25":0.0},{"n":"Terminal Portuário Wellstream - TPW","uf":"RJ","pub":false,"c23":0.0,"c24":0.0,"c25":0.0},{"n":"Terminal Estaleiro Mauá","uf":"RJ","pub":false,"c23":0.0,"c24":0.0,"c25":0.0},{"n":"Porto Veleiro Búzios","uf":"RJ","pub":false,"c23":0.0,"c24":0.0,"c25":0.0},{"n":"Porto Engenheiro Zephyrino Lavanère Machado Filho","uf":"RJ","pub":false,"c23":0.0,"c24":0.0,"c25":0.0},{"n":"BRICLOG","uf":"RJ","pub":false,"c23":0.0,"c24":0.0,"c25":0.0},{"n":"Porto Belo","uf":"SC","pub":false,"c23":0.0,"c24":0.0,"c25":0.0},{"n":"Manaus","uf":"AM","pub":false,"c23":0.0,"c24":0.0,"c25":0.0},{"n":"Estaleiro Renave","uf":"RJ","pub":false,"c23":0.0,"c24":0.0,"c25":0.0},{"n":"Estaleiro Camorim","uf":"RJ","pub":false,"c23":0.0,"c24":0.0,"c25":0.0},{"n":"Brasco Logística Offshore","uf":"RJ","pub":false,"c23":0.0,"c24":0.0,"c25":0.0},{"n":"Atracadouro Barra Sul","uf":"SC","pub":false,"c23":0.0,"c24":0.0,"c25":0.0},{"n":"UTC Engenharia","uf":"RJ","pub":false,"c23":0.0,"c24":0.0,"c25":0.0}];
+        const VESSEL_INTEL = {"itaguai":{"anos":"2019-2025","calls":6444,"ships":1935,"dwt":116139,"co2":215547},"itaqui":{"anos":"2018-2024","calls":5832,"ships":2906,"dwt":57865,"co2":879118},"paranagua":{"anos":"2019-2025","calls":13601,"ships":4464,"dwt":55853,"co2":2093167},"vila-do-conde":{"anos":"2019-2025","calls":5158,"ships":1958,"dwt":40958}};
 
         // ========== HELPERS ==========
         function fmt(num) {
@@ -172,18 +186,18 @@
             return (
                 <section className="hero-bg" style={{minHeight:'100vh',display:'flex',flexDirection:'column',justifyContent:'center',padding:'60px 20px 40px'}}>
                     <div style={{maxWidth:1200,margin:'0 auto',width:'100%',textAlign:'center'}}>
-                        <p style={{color:'#34d399',fontSize:'0.85rem',fontWeight:600,letterSpacing:2,textTransform:'uppercase',marginBottom:16}}>Cargo Movement Analytics</p>
+                        <p style={{color:'#00bfc0',fontSize:'0.85rem',fontWeight:600,letterSpacing:2,textTransform:'uppercase',marginBottom:16}}>Cargo Movement Analytics</p>
                         <h1 style={{color:'#fff',fontSize:'clamp(2.2rem, 5vw, 4rem)',fontWeight:800,lineHeight:1.1,marginBottom:16}}>
-                            Brazil's Top 20<br/>Ports & Terminals
+                            Brazil Ports<br/>& Terminals
                         </h1>
-                        <p style={{color:'rgba(255,255,255,0.5)',fontSize:'1.1rem',marginBottom:48}}>2021 - 2025 Dashboard</p>
+                        <p style={{color:'rgba(255,255,255,0.5)',fontSize:'1.1rem',marginBottom:48}}>2021 - 2025 Dashboard · Official ANTAQ data</p>
 
                         <div className="hero-stats" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:20,marginBottom:48}}>
                             {[
-                                { target: Math.round(totalCargo2025/1e6), suffix: ' Mt', label: 'Total Cargo 2025' },
-                                { target: totalBerthings2025, suffix: '', label: 'Total Berthings 2025' },
-                                { target: 20, suffix: '', label: 'Tracked Facilities' },
-                                { target: uniqueStates, suffix: '', label: 'Brazilian States' },
+                                { target: Math.round(ALL_FACILITIES.reduce((t, f) => t + (f.c25 || 0), 0)), suffix: ' Mt', label: 'Total Cargo 2025 (All Facilities)' },
+                                { target: ALL_FACILITIES.length, suffix: '', label: 'Facilities Covered' },
+                                { target: 20, suffix: '', label: 'Detailed Profiles (Top 20)' },
+                                { target: [...new Set(ALL_FACILITIES.map(f => f.uf).filter(u => u && u !== '-'))].length, suffix: '', label: 'Brazilian States' },
                             ].map((item, i) => (
                                 <div key={i} className="glass-card" style={{padding:'24px 16px',textAlign:'center'}}>
                                     <AnimatedCounter target={item.target} suffix={item.suffix} />
@@ -193,13 +207,13 @@
                         </div>
 
                         <div className="glass-card" style={{padding:'12px 24px',display:'inline-block',marginBottom:40}}>
-                            <p style={{color:'rgba(255,255,255,0.6)',fontSize:'0.8rem'}}>Data Source: <span style={{color:'#34d399',fontWeight:600}}>ANTAQ (National Waterway Transportation Agency)</span></p>
+                            <p style={{color:'rgba(255,255,255,0.6)',fontSize:'0.8rem'}}>Data Source: <span style={{color:'#e2bf76',fontWeight:600}}>ANTAQ (National Waterway Transportation Agency)</span></p>
                         </div>
 
                         <nav style={{display:'flex',justifyContent:'center',gap:12,flexWrap:'wrap'}}>
-                            {['overview','compare','about'].map(s => (
+                            {['overview','compare','data','about'].map(s => (
                                 <button key={s} onClick={() => onNavigate(s)}
-                                    style={{padding:'10px 24px',borderRadius:8,border:'1px solid rgba(255,255,255,0.2)',background: s==='overview' ? '#059669' : 'rgba(255,255,255,0.06)',color:'#fff',fontWeight:600,fontSize:'0.875rem',cursor:'pointer',transition:'all 0.2s',textTransform:'capitalize'}}>
+                                    style={{padding:'10px 24px',borderRadius:8,border:'1px solid rgba(255,255,255,0.2)',background: s==='overview' ? '#00bfc0' : 'rgba(255,255,255,0.06)',color: s==='overview' ? '#04151a' : '#fff',fontWeight:600,fontSize:'0.875rem',cursor:'pointer',transition:'all 0.2s',textTransform:'capitalize'}}>
                                     {s}
                                 </button>
                             ))}
@@ -214,8 +228,8 @@
             return (
                 <div className="nav-sticky">
                     <div style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',gap:8,padding:'0 20px'}}>
-                        <span style={{fontWeight:800,fontSize:'0.95rem',color:'#059669',marginRight:16}}>BR Ports</span>
-                        {['overview','compare','about'].map(s => (
+                        <span style={{fontWeight:800,fontSize:'0.95rem',color:'#0a8f93',marginRight:16}}>BR Ports</span>
+                        {['overview','compare','data','about'].map(s => (
                             <button key={s} className="nav-link" onClick={() => onNavigate(s)} style={{textTransform:'capitalize'}}>{s}</button>
                         ))}
                     </div>
@@ -241,7 +255,7 @@
                 name: p.name.length > 22 ? p.name.substring(0, 22) + '...' : p.name,
                 cargo: p.data[4].t,
                 id: p.id,
-                fill: p.type === "Porto Organizado" ? '#059669' : '#0e7490'
+                fill: p.type === "Porto Organizado" ? '#0a8f93' : '#e2bf76'
             })).sort((a, b) => b.cargo - a.cargo);
 
             return (
@@ -303,7 +317,7 @@
                                     <XAxis type="number" tickFormatter={v => fmt(v)} />
                                     <YAxis dataKey="name" type="category" width={180} tick={{fontSize:11}} interval={0} />
                                     <Tooltip formatter={v => fmtTonnes(v)} />
-                                    <Bar dataKey="cargo" fill="#059669" radius={[0,4,4,0]} isAnimationActive={false}
+                                    <Bar dataKey="cargo" fill="#0a8f93" radius={[0,4,4,0]} isAnimationActive={false}
                                          onClick={(d) => onSelectPort(d.id)} style={{cursor:'pointer'}} />
                                 </BarChart>
                             </ResponsiveContainer>
@@ -343,7 +357,7 @@
                                 <div key={idx} className="section-card">
                                     <label style={{display:'block',fontSize:'0.8rem',fontWeight:600,color:'#6b7280',marginBottom:8}}>Port {idx+1}</label>
                                     <select value={sel[idx]} onChange={e => updateSel(idx, e.target.value)}
-                                        style={{width:'100%',padding:'10px 12px',borderRadius:8,border:'1px solid #e5e7eb',fontSize:'0.875rem',fontWeight:500,fontFamily:'Inter',background:'#fff'}}>
+                                        style={{width:'100%',padding:'10px 12px',borderRadius:8,border:'1px solid #e5e7eb',fontSize:'0.875rem',fontWeight:500,fontFamily:'Source Sans 3',background:'#fff'}}>
                                         <option value="">Select a port...</option>
                                         {PORTS.map(p => <option key={p.id} value={p.id}>{p.rank}. {p.name}</option>)}
                                     </select>
@@ -377,7 +391,7 @@
                                                 <XAxis dataKey="name" tick={{fontSize:10}} />
                                                 <YAxis tickFormatter={v => fmt(v)} />
                                                 <Tooltip formatter={v => fmtTonnes(v)} />
-                                                <Bar dataKey="cargo" fill="#059669" radius={[4,4,0,0]} isAnimationActive={false} />
+                                                <Bar dataKey="cargo" fill="#0a8f93" radius={[4,4,0,0]} isAnimationActive={false} />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -392,7 +406,7 @@
                                                 <div style={{display:'grid',gap:8,fontSize:'0.85rem'}}>
                                                     <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#6b7280'}}>2025 Cargo:</span><span style={{fontWeight:600}}>{fmtTonnes(port.data[4].t)}</span></div>
                                                     <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#6b7280'}}>2025 Berthings:</span><span style={{fontWeight:600}}>{fmtFull(port.data[4].b)}</span></div>
-                                                    <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#6b7280'}}>YoY Growth:</span><span style={{fontWeight:600,color:g>=0?'#059669':'#dc2626'}}>{g>=0?'+':''}{g}%</span></div>
+                                                    <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#6b7280'}}>YoY Growth:</span><span style={{fontWeight:600,color:g>=0?'#0a8f93':'#d6584f'}}>{g>=0?'+':''}{g}%</span></div>
                                                     <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#6b7280'}}>Top Cargo:</span><span style={{fontWeight:600}}>{port.cargoes[0][0]}</span></div>
                                                 </div>
                                             </div>
@@ -423,7 +437,7 @@
             return (
                 <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
                     <div className="modal-content">
-                        <div style={{background:'linear-gradient(135deg, #064e3b, #059669)',color:'#fff',padding:'32px',borderRadius:'16px 16px 0 0',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                        <div style={{background:'linear-gradient(135deg, #020617, #0a8f93)',color:'#fff',padding:'32px',borderRadius:'16px 16px 0 0',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                             <div>
                                 <h2 style={{fontSize:'1.5rem',fontWeight:800,marginBottom:4}}>{port.name}</h2>
                                 <p style={{opacity:0.7,fontSize:'0.9rem'}}>{port.city}, {port.state}</p>
@@ -437,7 +451,7 @@
                                 <div className="kpi-card"><p className="kpi-label">2025 Cargo</p><p className="kpi-value" style={{fontSize:'1.3rem'}}>{fmtTonnes(c25)}</p></div>
                                 <div className="kpi-card"><p className="kpi-label">2024 Cargo</p><p className="kpi-value" style={{fontSize:'1.3rem'}}>{fmtTonnes(c24)}</p></div>
                                 <div className="kpi-card"><p className="kpi-label">Berthings 2025</p><p className="kpi-value" style={{fontSize:'1.3rem'}}>{fmtFull(port.data[4].b)}</p></div>
-                                <div className="kpi-card"><p className="kpi-label">YoY Growth</p><p className="kpi-value" style={{fontSize:'1.3rem',color:yoy>=0?'#059669':'#dc2626'}}>{yoy>=0?'+':''}{yoy}%</p></div>
+                                <div className="kpi-card"><p className="kpi-label">YoY Growth</p><p className="kpi-value" style={{fontSize:'1.3rem',color:yoy>=0?'#0a8f93':'#d6584f'}}>{yoy>=0?'+':''}{yoy}%</p></div>
                             </div>
 
                             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24,marginBottom:32}}>
@@ -447,7 +461,7 @@
                                         <div key={i} style={{marginBottom:12}}>
                                             <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
                                                 <span style={{fontSize:'0.8rem',fontWeight:500,color:'#374151'}}>{name}</span>
-                                                <span style={{fontSize:'0.8rem',fontWeight:700,color:'#059669'}}>{pct}%</span>
+                                                <span style={{fontSize:'0.8rem',fontWeight:700,color:'#0a8f93'}}>{pct}%</span>
                                             </div>
                                             <div className="progress-bar"><div className="progress-fill" style={{width:pct+'%'}}></div></div>
                                         </div>
@@ -471,6 +485,18 @@
                                 </div>
                             </div>
 
+                            {VESSEL_INTEL[port.id] && (
+                                <div style={{marginBottom:32}}>
+                                    <h3 style={{fontWeight:700,marginBottom:16,fontSize:'1rem'}}>Vessel Call Intelligence ({VESSEL_INTEL[port.id].anos})</h3>
+                                    <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12}}>
+                                        <div className="kpi-card"><p className="kpi-label">Vessel Calls</p><p className="kpi-value" style={{fontSize:'1.3rem'}}>{fmtFull(VESSEL_INTEL[port.id].calls)}</p></div>
+                                        <div className="kpi-card"><p className="kpi-label">Unique Vessels</p><p className="kpi-value" style={{fontSize:'1.3rem'}}>{fmtFull(VESSEL_INTEL[port.id].ships)}</p></div>
+                                        <div className="kpi-card"><p className="kpi-label">Avg DWT</p><p className="kpi-value" style={{fontSize:'1.3rem'}}>{fmtFull(VESSEL_INTEL[port.id].dwt)}</p></div>
+                                        {VESSEL_INTEL[port.id].co2 && <div className="kpi-card"><p className="kpi-label">CO2 at Berth (t)</p><p className="kpi-value" style={{fontSize:'1.3rem'}}>{fmtFull(VESSEL_INTEL[port.id].co2)}</p></div>}
+                                    </div>
+                                    <p style={{fontSize:'0.72rem',color:'#9ca3af',marginTop:8}}>IMO-matched berthing records with deadweight tonnage. CO2 estimated for auxiliary engines at berth (IMO 4th GHG Study method).</p>
+                                </div>
+                            )}
                             <div style={{marginBottom:24}}>
                                 <h3 style={{fontWeight:700,marginBottom:16,fontSize:'1rem'}}>Annual Cargo Movement</h3>
                                 <ResponsiveContainer width="100%" height={250}>
@@ -502,6 +528,85 @@
             );
         }
 
+        // ========== ALL FACILITIES DATA ==========
+        function AllDataSection({ onSelectPort }) {
+            const [q, setQ] = useState('');
+            const [ftype, setFtype] = useState('all');
+            const [sortKey, setSortKey] = useState('c25');
+            const [asc, setAsc] = useState(false);
+            const totalAll = ALL_FACILITIES.reduce((t, f) => t + (f.c25 || 0), 0);
+            let rows = ALL_FACILITIES.filter(f =>
+                (ftype === 'all' || (ftype === 'public' ? f.pub : !f.pub)) &&
+                f.n.toLowerCase().includes(q.toLowerCase()));
+            rows = [...rows].sort((a, b) => {
+                const va = a[sortKey] == null ? -1 : a[sortKey], vb = b[sortKey] == null ? -1 : b[sortKey];
+                return (asc ? 1 : -1) * ((va > vb) - (va < vb));
+            });
+            const thStyle = {padding:'10px 8px',fontSize:'0.72rem',textTransform:'uppercase',letterSpacing:0.5,color:'#6b7280',cursor:'pointer',textAlign:'right',whiteSpace:'nowrap',fontFamily:'DM Sans',userSelect:'none'};
+            const Th = ({label, k, left}) => (
+                <th style={{...thStyle, textAlign: left ? 'left' : 'right'}}
+                    onClick={() => { if (sortKey === k) setAsc(!asc); else { setSortKey(k); setAsc(false); } }}>
+                    {label}{sortKey === k ? (asc ? ' ↑' : ' ↓') : ''}
+                </th>
+            );
+            const fmtMt = v => v == null ? '—' : v.toFixed(2);
+            const grw = f => (f.c24 && f.c25 != null) ? ((f.c25 - f.c24) / f.c24 * 100) : null;
+            return (
+                <section id="data" style={{padding:'80px 20px',background:'#fff'}}>
+                    <div style={{maxWidth:1200,margin:'0 auto'}}>
+                        <h2 style={{fontSize:'2rem',fontWeight:800,marginBottom:8}}>All Ports & Terminals</h2>
+                        <p style={{color:'#6b7280',fontSize:'0.9rem',marginBottom:32}}>Complete official ANTAQ cargo statistics for {ALL_FACILITIES.length} Brazilian port facilities, 2023-2025 (million tonnes). Rows in teal belong to the Top 20 dashboard - click to open details.</p>
+                        <div style={{display:'flex',gap:12,flexWrap:'wrap',marginBottom:20,alignItems:'center'}}>
+                            <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search facility..."
+                                style={{padding:'10px 14px',borderRadius:8,border:'1px solid #e5e7eb',fontSize:'0.875rem',fontFamily:'Source Sans 3',minWidth:240}} />
+                            {[['all','All'],['public','Public Ports'],['private','Private Terminals']].map(([key,label]) => (
+                                <button key={key} className={'filter-btn ' + (ftype === key ? 'active' : '')} onClick={() => setFtype(key)}>{label}</button>
+                            ))}
+                            <span style={{fontSize:'0.8rem',color:'#9ca3af',marginLeft:'auto'}}>{rows.length} facilities · {(totalAll/1000).toFixed(2)} billion tonnes in 2025</span>
+                        </div>
+                        <div className="section-card" style={{padding:0,overflowX:'auto'}}>
+                            <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.85rem'}}>
+                                <thead>
+                                    <tr style={{borderBottom:'2px solid #e5e7eb'}}>
+                                        <th style={{...thStyle,textAlign:'right',width:40}}>#</th>
+                                        <Th label="Facility" k="n" left={true} />
+                                        <Th label="UF" k="uf" left={true} />
+                                        <Th label="Type" k="pub" left={true} />
+                                        <Th label="2023" k="c23" />
+                                        <Th label="2024" k="c24" />
+                                        <Th label="2025" k="c25" />
+                                        <Th label="Share 2025" k="c25" />
+                                        <th style={thStyle}>{'Δ'} 25/24</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {rows.map((f, i) => {
+                                        const g = grw(f);
+                                        const isT20 = !!f.pid;
+                                        return (
+                                            <tr key={f.n} onClick={() => isT20 && onSelectPort(f.pid)}
+                                                style={{borderBottom:'1px solid #f3f4f6',background: isT20 ? '#eefafa' : 'transparent',cursor: isT20 ? 'pointer' : 'default'}}>
+                                                <td style={{padding:'8px',textAlign:'right',color:'#9ca3af'}}>{i + 1}</td>
+                                                <td style={{padding:'8px',fontWeight: isT20 ? 700 : 500,color: isT20 ? '#0a8f93' : '#13343b'}}>{f.n}</td>
+                                                <td style={{padding:'8px',color:'#6b7280'}}>{f.uf}</td>
+                                                <td style={{padding:'8px'}}><span className={'badge ' + (f.pub ? 'badge-public' : 'badge-terminal')}>{f.pub ? 'Public' : 'Private'}</span></td>
+                                                <td style={{padding:'8px',textAlign:'right',fontVariantNumeric:'tabular-nums'}}>{fmtMt(f.c23)}</td>
+                                                <td style={{padding:'8px',textAlign:'right',fontVariantNumeric:'tabular-nums'}}>{fmtMt(f.c24)}</td>
+                                                <td style={{padding:'8px',textAlign:'right',fontWeight:700,fontVariantNumeric:'tabular-nums'}}>{fmtMt(f.c25)}</td>
+                                                <td style={{padding:'8px',textAlign:'right',color:'#6b7280',fontVariantNumeric:'tabular-nums'}}>{f.c25 != null ? (f.c25 / totalAll * 100).toFixed(2) + '%' : '—'}</td>
+                                                <td style={{padding:'8px',textAlign:'right',fontWeight:600,fontVariantNumeric:'tabular-nums',color: g == null ? '#9ca3af' : g >= 0 ? '#0a8f93' : '#d6584f'}}>{g == null ? '—' : (g >= 0 ? '+' : '') + g.toFixed(1) + '%'}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                        <p style={{fontSize:'0.75rem',color:'#9ca3af',marginTop:12}}>Source: ANTAQ official annual statistics (consolidated research base). Values in million tonnes of gross cargo.</p>
+                    </div>
+                </section>
+            );
+        }
+
         // ========== ABOUT ==========
         function AboutSection() {
             return (
@@ -513,22 +618,22 @@
                             <div className="section-card">
                                 <h3 style={{fontWeight:700,fontSize:'1.1rem',marginBottom:12}}>Project Overview</h3>
                                 <p style={{color:'#4b5563',lineHeight:1.7,fontSize:'0.9rem'}}>
-                                    This analytics dashboard provides comprehensive insights into Brazil's 20 largest ports and terminals, tracking cargo movement and operational metrics from 2021 through 2025. It covers public ports and authorised terminals across 12 Brazilian states, enabling port operators, researchers, and policymakers to analyse trends and compare facilities.
+                                    This analytics dashboard covers Brazil's entire port system: official ANTAQ cargo statistics for all 211 port facilities (2023-2025) and detailed operational profiles of the 20 largest ports and terminals (2021-2025), including public ports and authorised terminals. It enables port operators, researchers, and policymakers to analyse trends and compare facilities nationwide.
                                 </p>
                             </div>
-                            <div className="section-card" style={{borderLeft:'4px solid #059669'}}>
+                            <div className="section-card" style={{borderLeft:'4px solid #00bfc0'}}>
                                 <h3 style={{fontWeight:700,fontSize:'1.1rem',marginBottom:12}}>About the Researcher</h3>
-                                <p style={{fontWeight:600,color:'#111827',marginBottom:8}}>Darliane Ribeiro Cunha, PhD</p>
+                                <p style={{fontWeight:600,color:'#111827',marginBottom:8}}>Darliane Cunha, PhD</p>
                                 <p style={{color:'#4b5563',lineHeight:1.7,fontSize:'0.9rem',marginBottom:12}}>
                                     Associate Professor at UFMA (Federal University of Maranhao). Researcher in maritime sustainability, port governance, and environmental analytics with 20+ years of experience.
                                 </p>
-                                <a href="mailto:darlianerc@gmail.com" style={{color:'#059669',fontWeight:600,fontSize:'0.85rem',textDecoration:'none'}}>darlianerc@gmail.com</a>
+                                <a href="mailto:darlianerc@gmail.com" style={{color:'#0a8f93',fontWeight:600,fontSize:'0.85rem',textDecoration:'none'}}>darlianerc@gmail.com</a>
                             </div>
                         </div>
 
                         <div className="section-card" style={{background:'#f9fafb',marginBottom:32}}>
                             <h3 style={{fontWeight:700,marginBottom:8,fontSize:'0.95rem'}}>Data Source</h3>
-                            <p style={{color:'#4b5563',fontSize:'0.85rem'}}><strong>ANTAQ</strong> (Agencia Nacional de Transportes Aquaviarios) - National Waterway Transportation Agency. Official Brazilian agency for waterway regulation.</p>
+                            <p style={{color:'#4b5563',fontSize:'0.85rem',lineHeight:1.7}}><strong>ANTAQ</strong> (Agencia Nacional de Transportes Aquaviarios) - National Waterway Transportation Agency, official Brazilian agency for waterway regulation. Cargo figures for 2023-2025 are official full-year statistics from ANTAQ's consolidated annual tables covering all Brazilian port facilities; 2021-2022 series and berthing counts are historical research estimates. The All Ports & Terminals table covers every facility reported by ANTAQ (2023-2025). Vessel Call Intelligence combines ANTAQ berthing records with IMO ship registry deadweight data (Itaguai, Itaqui, Paranagua and Vila do Conde) and at-berth CO2 estimated with the IMO Fourth GHG Study method. Last update: July 2026.</p>
                         </div>
                     </div>
                 </section>
@@ -549,9 +654,11 @@
                     <NavBar onNavigate={handleNavigate} />
                     <OverviewSection onSelectPort={setSelectedPort} />
                     <ComparisonSection />
+                    <AllDataSection onSelectPort={setSelectedPort} />
                     <AboutSection />
-                    <footer style={{background:'#0f172a',color:'#fff',padding:'32px 20px',textAlign:'center'}}>
-                        <p style={{color:'#6b7280',fontSize:'0.8rem'}}>2025 Brazil's Top 20 Ports & Terminals Dashboard. Data: ANTAQ. Developed by Darliane Ribeiro Cunha, PhD.</p>
+                    <footer style={{background:'#020617',color:'#fff',padding:'32px 20px',textAlign:'center'}}>
+                        <p style={{color:'#76828b',fontSize:'0.8rem',marginBottom:6}}>Brazil Ports & Terminals Dashboard - Data: ANTAQ - 2026</p>
+                        <p style={{color:'#bfc5ca',fontSize:'0.8rem'}}>Developed by <a href="https://ribeirocunha.com/" target="_blank" rel="noopener" style={{color:'#00bfc0',fontWeight:600,textDecoration:'none'}}>Darliane Ribeiro Cunha, PhD</a></p>
                     </footer>
                     {selectedPort && <PortModal port={PORTS.find(p => p.id === selectedPort)} onClose={() => setSelectedPort(null)} />}
                 </div>
